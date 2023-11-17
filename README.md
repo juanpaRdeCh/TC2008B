@@ -1,6 +1,8 @@
-# TC2008B
-Repositorio TC2008B para sistemas multiagentes 
+#Repositorio TC2008B para sistemas multiagentes 
 
-Integrantes:
-David Flores Becerril - A01368391
-Juan Pablo Ruiz de Chavez Diez de Urdanivia - A01783127
+##Integrantes:
++ David Flores Becerril - A01368391
++ Juan Pablo Ruiz de Chavez Diez de Urdanivia - A01783127
+
+##Descripción
+Se trata de una simulación de tráfico que tiene como propósito demostrar la capacidad de un agente inteligente para resolver una problemática. 
