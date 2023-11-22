@@ -46,7 +46,7 @@ class Car(Agent):
             current_position = self.pos
             destination_position = self.destination.pos
 
-            # Create a graph from the grid
+            # Create a graph from the grid with obstacles taken into account
             G = nx.Graph()
             for x in range(self.model.width):
                 for y in range(self.model.height):
@@ -59,17 +59,45 @@ class Car(Agent):
             for edge in G.edges:
                 G.edges[edge]["weight"] = 1
 
+            # Add edges to represent valid moves (considering obstacles)
+            for x in range(self.model.width):
+                for y in range(self.model.height):
+                    current_node = (x, y)
+                    neighbors = self.model.grid.get_neighborhood(
+                        current_node, moore=True, include_center=False
+                    )
+
+                    for neighbor in neighbors:
+                        if not any(
+                            isinstance(agent, Obstacle)
+                            for agent in self.model.grid.get_cell_list_contents(
+                                neighbor
+                            )
+                        ):
+                            G.add_edge(current_node, neighbor, weight=1)
+
             # Find the shortest path using A*
-            path = nx.astar_path(G, current_position, destination_position)
+            try:
+                path = nx.astar_path(G, current_position, destination_position)
+            except nx.NetworkXNoPath:
+                print(
+                    f"No valid path from {current_position} to {destination_position}"
+                )
+                return
 
             if path:
                 # Move to the next position in the path
                 new_position = path[1]
                 self.model.grid.move_agent(self, new_position)
 
+                # Check if the agent has reached its destination
+                if new_position == destination_position:
+                    self.model.grid.remove_agent(self)
+                    self.model.schedule.remove(self)
+
     def move(self):
         """
-        Determines if the agent can move in the direction that was chosen
+        Determines if the agent can move in the direction that was chosen.
         """
         possible_steps = self.model.grid.get_neighborhood(
             self.pos, moore=True, include_center=True
@@ -82,13 +110,10 @@ class Car(Agent):
             )
             if isinstance(agent, Road)
         ]
-        light_agents_around = [
-            agent
-            for agent in self.model.grid.get_neighbors(
-                self.pos, moore=False, include_center=True
-            )
-            if isinstance(agent, Traffic_Light)
-        ]
+
+        if not road_agents_around:
+            # No roads nearby, cannot move
+            return
 
         road_positions = [agent.pos for agent in road_agents_around]
         road_direction = {agent.pos: agent.direction for agent in road_agents_around}
@@ -113,20 +138,6 @@ class Car(Agent):
                 new_position = self.random.choice(filtered_next_moves)
                 self.model.grid.move_agent(self, new_position)
                 self.moving = True
-        if light_agents_around:
-            traffic_light = light_agents_around[0]
-            if not traffic_light.state:
-                self.moving = False
-            else:
-                if road_agents_around and filtered_next_moves:
-                    new_position = self.random.choice(filtered_next_moves)
-                    self.model.grid.move_agent(self, new_position)
-                light_pos = traffic_light.pos
-                self.model.grid.move_agent(self, light_pos)
-                self.moving = True
-
-        if self.destination is not None:
-            self.move_to_destination()
 
     def step(self):
         """
