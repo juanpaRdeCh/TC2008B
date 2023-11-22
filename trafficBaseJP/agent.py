@@ -22,6 +22,7 @@ class Car(Agent):
         super().__init__(unique_id, model)
         self.destination = self.choose_random_destination()
         self.moving = moving
+        print("Destination:", self.destination)
 
     def choose_random_destination(self):
         """
