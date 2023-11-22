@@ -26,6 +26,14 @@ class CityModel(Model):
 
             self.grid = MultiGrid(self.width, self.height, torus = False) 
             self.schedule = RandomActivation(self)
+            
+            corners = [(0,0), (0, self.height-1), (self.width-1, 0), (self.width-1, self.height-1)]
+            
+            
+            for i, pos in enumerate(corners):
+                Agent = Car(i+1000, self)
+                self.schedule.add(Agent)
+                self.grid.place_agent(Agent, pos)
 
             # Goes through each character in the map file and creates the corresponding agent.
             for r, row in enumerate(lines):
@@ -54,3 +62,13 @@ class CityModel(Model):
     def step(self):
         '''Advance the model by one step.'''
         self.schedule.step()
+        corners = [(0,0), (0, self.height-1), (self.width-1, 0), (self.width-1, self.height-1)]
+
+        if self.schedule.steps % 10 == 0:
+            for corner in corners:
+                    new_agent = Car(self.num_agents + 1, self)
+                    self.num_agents += 1
+                    self.grid.place_agent(new_agent, corner)
+                    self.schedule.add(new_agent)
+        
+        
