@@ -117,6 +117,13 @@ class Car(Agent):
 
         road_positions = [agent.pos for agent in road_agents_around]
         road_direction = {agent.pos: agent.direction for agent in road_agents_around}
+        light_agents_around = [
+            agent
+            for agent in self.model.grid.get_neighbors(
+                self.pos, moore=False, include_center=True
+            )
+            if isinstance(agent, Traffic_Light)
+        ]
 
         current_direction = road_direction.get(road_positions[0], None)
 
@@ -130,13 +137,22 @@ class Car(Agent):
                 p for p in possible_steps if road_direction.get(p) == current_direction
             ]
 
-            filtered_next_moves = [
-                pos for pos in next_moves if road_direction[pos] == current_direction
-            ]
-
-            if filtered_next_moves:
-                new_position = self.random.choice(filtered_next_moves)
+            if next_moves:
+                new_position = next_moves[0]
                 self.model.grid.move_agent(self, new_position)
+                self.moving = True
+            else:
+                self.moving = False
+        if light_agents_around:
+            traffic_light = light_agents_around[0]
+            if not traffic_light.state:
+                self.moving = False
+            else:
+                if road_agents_around and next_moves:
+                    new_position = next_moves[0]
+                    self.model.grid.move_agent(self, new_position)
+                light_pos = traffic_light.pos
+                self.model.grid.move_agent(self, light_pos)
                 self.moving = True
 
     def step(self):
