@@ -65,6 +65,7 @@ class CityModel(Model):
                     elif col == "D":
                         agent = Destination(f"d_{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
+                        self.schedule.add(agent)
 
         self.num_agents = N
         self.running = True
