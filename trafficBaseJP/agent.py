@@ -1,4 +1,7 @@
 from mesa import Agent
+from queue import PriorityQueue
+import networkx as nx
+import random
 
 
 class Car(Agent):
@@ -9,7 +12,7 @@ class Car(Agent):
         direction: Randomly chosen direction chosen from one of eight directions
     """
 
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id, model, moving=False):
         """
         Creates a new random agent.
         Args:
@@ -17,28 +20,112 @@ class Car(Agent):
             model: Model reference for the agent
         """
         super().__init__(unique_id, model)
+        self.destination = self.choose_random_destination()
+        self.moving = moving
+
+    def choose_random_destination(self):
+        """
+        Randomly choose a destination from the available destination agents.
+        """
+        destination_agents = [
+            agent
+            for agent in self.model.schedule.agents
+            if isinstance(agent, Destination)
+        ]
+        if destination_agents:
+            return random.choice(destination_agents)
+        else:
+            return None
+
+    def move_to_destination(self):
+        """
+        Move the agent to its destination using A* pathfinding.
+        """
+        if self.destination is not None:
+            current_position = self.pos
+            destination_position = self.destination.pos
+
+            # Create a graph from the grid
+            G = nx.Graph()
+            for x in range(self.model.width):
+                for y in range(self.model.height):
+                    if not any(
+                        isinstance(agent, Obstacle)
+                        for agent in self.model.grid.get_cell_list_contents((x, y))
+                    ):
+                        G.add_node((x, y))
+
+            for edge in G.edges:
+                G.edges[edge]["weight"] = 1
+
+            # Find the shortest path using A*
+            path = nx.astar_path(G, current_position, destination_position)
+
+            if path:
+                # Move to the next position in the path
+                new_position = path[1]
+                self.model.grid.move_agent(self, new_position)
 
     def move(self):
         """
         Determines if the agent can move in the direction that was chosen
         """
-
-        x, y = self.pos
         possible_steps = self.model.grid.get_neighborhood(
-            (x, y), moore=True, include_center=False
+            self.pos, moore=True, include_center=True
         )
 
-        # Filter possible steps based on the road's direction
-        road_direction = self.model.grid[x][y].direction
-        if road_direction == "Left":
-            possible_steps = [(x, y - 1) for x, y in possible_steps]
-        elif road_direction == "Right":
-            possible_steps = [(x, y + 1) for x, y in possible_steps]
-        elif road_direction == "Up":
-            possible_steps = [(x - 1, y) for x, y in possible_steps]
-        elif road_direction == "Down":
-            possible_steps = [(x + 1, y) for x, y in possible_steps]
-        self.model.grid.move_to_empty(self, possible_steps)
+        road_agents_around = [
+            agent
+            for agent in self.model.grid.get_neighbors(
+                self.pos, moore=False, include_center=True
+            )
+            if isinstance(agent, Road)
+        ]
+        light_agents_around = [
+            agent
+            for agent in self.model.grid.get_neighbors(
+                self.pos, moore=False, include_center=True
+            )
+            if isinstance(agent, Traffic_Light)
+        ]
+
+        road_positions = [agent.pos for agent in road_agents_around]
+        road_direction = {agent.pos: agent.direction for agent in road_agents_around}
+
+        current_direction = road_direction.get(road_positions[0], None)
+
+        next_moves = [p for p in possible_steps if p in road_positions]
+
+        print("Possible Steps:", possible_steps)
+        print("Next Moves:", next_moves)
+
+        if current_direction is not None:
+            next_moves = [
+                p for p in possible_steps if road_direction.get(p) == current_direction
+            ]
+
+            filtered_next_moves = [
+                pos for pos in next_moves if road_direction[pos] == current_direction
+            ]
+
+            if filtered_next_moves:
+                new_position = self.random.choice(filtered_next_moves)
+                self.model.grid.move_agent(self, new_position)
+                self.moving = True
+        if light_agents_around:
+            traffic_light = light_agents_around[0]
+            if not traffic_light.state:
+                self.moving = False
+            else:
+                if road_agents_around and filtered_next_moves:
+                    new_position = self.random.choice(filtered_next_moves)
+                    self.model.grid.move_agent(self, new_position)
+                light_pos = traffic_light.pos
+                self.model.grid.move_agent(self, light_pos)
+                self.moving = True
+
+        if self.destination is not None:
+            self.move_to_destination()
 
     def step(self):
         """
