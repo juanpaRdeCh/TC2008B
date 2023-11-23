@@ -35,10 +35,6 @@ class CityModel(Model):
                 (self.width - 1, self.height - 1),
             ]
 
-            for i, pos in enumerate(corners):
-                Agent = Car(i + 1000, self)
-                self.schedule.add(Agent)
-                self.grid.place_agent(Agent, pos)
 
             # Goes through each character in the map file and creates the corresponding agent.
             for r, row in enumerate(lines):
@@ -46,6 +42,7 @@ class CityModel(Model):
                     if col in ["v", "^", ">", "<"]:
                         agent = Road(f"r_{r*self.width+c}", self, dataDictionary[col])
                         self.grid.place_agent(agent, (c, self.height - r - 1))
+                        self.schedule.add(agent)
 
                     elif col in ["S", "s"]:
                         agent = Traffic_Light(
@@ -61,17 +58,25 @@ class CityModel(Model):
                     elif col == "#":
                         agent = Obstacle(f"ob_{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
+                        self.schedule.add(agent)
 
                     elif col == "D":
                         agent = Destination(f"d_{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
                         self.schedule.add(agent)
 
+            for i, pos in enumerate(corners):
+                Agent = Car(i + 1000, self)
+                self.schedule.add(Agent)
+                self.grid.place_agent(Agent, pos)
+                
+                
         self.num_agents = N
         self.running = True
 
     def step(self):
         """Advance the model by one step."""
+        
         self.schedule.step()
 
         # Create a new Car agent at each corner every 10 steps
