@@ -24,7 +24,7 @@ class CityModel(Model):
             lines = baseFile.readlines()
             self.width = len(lines[0]) - 1
             self.height = len(lines)
-            
+
             self.grid = MultiGrid(self.width, self.height, torus=False)
             self.schedule = RandomActivation(self)
 
@@ -34,7 +34,6 @@ class CityModel(Model):
                 (self.width - 1, 0),
                 (self.width - 1, self.height - 1),
             ]
-
 
             # Goes through each character in the map file and creates the corresponding agent.
             for r, row in enumerate(lines):
@@ -64,72 +63,115 @@ class CityModel(Model):
                         agent = Destination(f"d_{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
                         self.schedule.add(agent)
-            
+
             self.create_graph()
 
             for i, pos in enumerate(corners):
                 Agent = Car(i + 1000, self, self.graph)
                 self.schedule.add(Agent)
                 self.grid.place_agent(Agent, pos)
-               
+
         self.num_agents = N
         self.running = True
-        
+
     def create_graph(self):
-            """
-            Create a graph from the grid with obstacles taken into account
-            """
-            G = nx.DiGraph()
-            for x in range(self.width):
-                for y in range(self.height):
-                    cell_contents = self.grid.get_cell_list_contents((x, y))
-                    if any(isinstance(agent, (Road, Traffic_Light, Destination)) for agent in cell_contents):
-                        G.add_node((x, y))
+        """
+        Create a graph from the grid with obstacles taken into account
+        """
+        G = nx.DiGraph()
+        for x in range(self.width):
+            for y in range(self.height):
+                cell_contents = self.grid.get_cell_list_contents((x, y))
+                if any(
+                    isinstance(agent, (Road, Traffic_Light, Destination))
+                    for agent in cell_contents
+                ):
+                    G.add_node((x, y))
 
-            # Add edges to represent valid moves (considering obstacles)
-            for x in range(self.width):
-                for y in range(self.height):
-                    cell_contents = self.grid.get_cell_list_contents((x, y))
-                    if any(isinstance(agent, (Road, Traffic_Light, Destination)) for agent in cell_contents):
-                        
-                        current_node = (x, y)
-                        neighbors = self.grid.get_neighborhood(
-                            current_node, moore=False, include_center=False
-                        )
+        # Add edges to represent valid moves (considering obstacles)
+        for x in range(self.width):
+            for y in range(self.height):
+                cell_contents = self.grid.get_cell_list_contents((x, y))
+                if any(
+                    isinstance(agent, (Road, Traffic_Light, Destination))
+                    for agent in cell_contents
+                ):
+                    current_node = (x, y)
+                    neighbors = self.grid.get_neighborhood(
+                        current_node, moore=False, include_center=False
+                    )
 
-                        for neighbor in neighbors:
-                            neighbor_contents = self.grid.get_cell_list_contents(neighbor)
-                            if any(isinstance(agent, (Road, Traffic_Light, Destination)) for agent in neighbor_contents):
-                                current_agent = next(agent for agent in cell_contents if isinstance(agent, (Road, Traffic_Light, Destination))) #MOVE IT AFTER CURRENT_AGENT
-                                
-                                # G.add_edge(current_node, neighbor, weight=1)
-                                if isinstance(current_agent, Road): #ADD CONDITION
-                                    direction = current_agent.direction  # Fix this line
-                                elif isinstance(current_agent, Traffic_Light):
-                                    G.add_edge(current_node, neighbor, weight=1)
-                                            
-                                elif isinstance(current_agent, Destination):
-                                    G.add_edge(neighbor, current_node, weight=1)
-                                    
+                    for neighbor in neighbors:
+                        neighbor_contents = self.grid.get_cell_list_contents(neighbor)
+                        if any(
+                            isinstance(agent, (Road, Traffic_Light, Destination))
+                            for agent in neighbor_contents
+                        ):
+                            current_agent = next(
+                                agent
+                                for agent in cell_contents
+                                if isinstance(agent, (Road, Traffic_Light, Destination))
+                            )
+
+                            if isinstance(current_agent, Road):
+                                direction = current_agent.direction
+                                # Connect the nodes only in the direction of the road
                                 if direction == "Up" and y < neighbor[1]:
-                                    G.add_edge(current_node, neighbor, weight=1)
+                                    G.add_edge(
+                                        current_node,
+                                        neighbor,
+                                        weight=1,
+                                        direction=direction,
+                                    )
                                 elif direction == "Down" and y > neighbor[1]:
-                                    G.add_edge(current_node, neighbor, weight=1)
+                                    G.add_edge(
+                                        current_node,
+                                        neighbor,
+                                        weight=1,
+                                        direction=direction,
+                                    )
                                 elif direction == "Left" and x > neighbor[0]:
-                                    G.add_edge(current_node, neighbor, weight=1)
+                                    G.add_edge(
+                                        current_node,
+                                        neighbor,
+                                        weight=1,
+                                        direction=direction,
+                                    )
                                 elif direction == "Right" and x < neighbor[0]:
-                                    G.add_edge(current_node, neighbor, weight=1)
+                                    G.add_edge(
+                                        current_node,
+                                        neighbor,
+                                        weight=1,
+                                        direction=direction,
+                                    )
 
+                            elif isinstance(current_agent, Traffic_Light):
+                                # Añade la dirección del semáforo como atributo del borde
+                                road_direction = [
+                                    a.direction
+                                    for a in neighbor_contents
+                                    if isinstance(a, Road)
+                                ]
+                                if road_direction:
+                                    road_direction = road_direction[0]
+                                    G.add_edge(
+                                        current_node,
+                                        neighbor,
+                                        weight=1,
+                                        traffic_light_direction=road_direction,
+                                    )
 
-            pos = {node: (node[0], node[1]) for node in G.nodes()}
-            nx.draw(G, pos, with_labels=False, font_weight='bold')
-            plt.show()
-            self.graph = G
-            
-        
+                            elif isinstance(current_agent, Destination):
+                                G.add_edge(neighbor, current_node, weight=1)
+
+        pos = {node: (node[0], node[1]) for node in G.nodes()}
+        nx.draw(G, pos, with_labels=False, font_weight="bold")
+        plt.show()
+        self.graph = G
+
     def step(self):
         """Advance the model by one step."""
-        
+
         self.schedule.step()
 
         # Create a new Car agent at each corner every 10 steps
