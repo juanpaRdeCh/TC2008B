@@ -166,7 +166,7 @@ class Road(Agent):
     Road agent. Determines where the cars can move, and in which direction.
     """
 
-    def __init__(self, unique_id, model, direction="Right"):
+    def __init__(self, unique_id, model, direction):
         """
         Creates a new road.
         Args:
