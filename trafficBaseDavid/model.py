@@ -106,10 +106,10 @@ class CityModel(Model):
                                 if isinstance(current_agent, Road): #ADD CONDITION
                                     direction = current_agent.direction  # Fix this line
                                 elif isinstance(current_agent, Traffic_Light):
-                                    direction = "Up"
+                                    G.add_edge(current_node, neighbor, weight=1)
                                             
                                 elif isinstance(current_agent, Destination):
-                                    direction = "Up"
+                                    G.add_edge(neighbor, current_node, weight=1)
                                     
                                 if direction == "Up" and y < neighbor[1]:
                                     G.add_edge(current_node, neighbor, weight=1)
