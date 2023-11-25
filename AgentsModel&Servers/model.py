@@ -18,7 +18,7 @@ class CityModel(Model):
         N: Number of agents in the simulation
     """
 
-    def __init__(self, N):
+    def __init__(self, map_path):
         # Load the map dictionary. The dictionary maps the characters in the map file to the corresponding agent.
         dataDictionary = json.load(open("city_files/mapDictionary.json"))
 
@@ -76,7 +76,7 @@ class CityModel(Model):
                 self.schedule.add(Agent)
                 self.grid.place_agent(Agent, pos)
 
-        self.num_agents = N
+        self.num_agents = 0
         
         for agents, (x, y) in self.grid.coord_iter():
             for agent in agents:

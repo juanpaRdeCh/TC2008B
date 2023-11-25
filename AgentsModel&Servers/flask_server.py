@@ -2,38 +2,20 @@ from agent import Car, Traffic_Light, Destination, Obstacle, Road
 from model import CityModel, cars, traffic_lights, destination, buidings, road
 from flask import Flask, request, jsonify
 
-width = 25
-height = 25
-cityModel = None
-current_step = 0
-num_agents = 0
-
 app = Flask("Traffic Simulator")
 
 @app.route('/init', methods=['GET','POST'])
 def init_model():
-    global current_step, cityModel, num_agents, width, height
+    global cityModel, current_step, num_agents, width, height
     
-    if request.method == 'POST':
-        num_agents = int(request.form.get('num_agents'))
-        width = int(request.form.get('width'))
-        height = int(request.form.get('height'))
+    if request.method == "POST":
+        map_path = request.form.get("MapPath")
+        
         current_step = 0
-        
-        print(request.form)
-        print(num_agents, width, height)
-        cityModel = CityModel(num_agents, width, height)
-        
-        return jsonify({"message": "Parameteres Recieved. Model initialized"})
-    
-    elif request.method == 'GET':
-        num_agents = 0
-        width = 25
-        height = 25
-        current_step = 0
-        cityModel = CityModel(num_agents, width, height)
-        
-        return jsonify({"message": "Default Parameters Received. Model initialized"})
+         
+        cityModel = CityModel(map_path)
+         
+        return jsonify({"message": "Model Initialized"})
     
 @app.route('/getAgents', methods=['GET'])
 def get_cars():
