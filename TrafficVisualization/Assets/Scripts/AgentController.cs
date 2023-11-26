@@ -16,7 +16,7 @@ using UnityEngine.Networking;
 
 [Serializable]
 public class AgentData{
-    //Contains AgentData
+    //Contains AgentData for each agent
 
     public string id;
     public float x,y,z;
@@ -36,7 +36,7 @@ public class RoadData : AgentData{
 
     public string direction;
 
-    public RoadData(string id, float x, float y, float z) : base(id, x, y, z){
+    public RoadData(string id, float x, float y, float z, string direction) : base(id, x, y, z){
         this.direction = direction;
     }
 
@@ -44,12 +44,12 @@ public class RoadData : AgentData{
 
 
 [Serializable]
-public class TrafficLightData : RoadData{
+public class TLightData : AgentData{
     //Contains TrafficLightData
 
-    public string state;
+    public bool state;
 
-    public TrafficLightData(string id, float x, float y, float z, string state) : base(id, x, y, z){
+    public TLightData(string id, float x, float y, float z, bool state) : base(id, x, y, z){
         this.state = state;
     }
 }
@@ -60,12 +60,12 @@ public class CarData : AgentData{
 
     public string destination;
 
-    public CarData(string id, float x, float y, float z, string direction, string state) : base(id, x, y, z){
+    public CarData(string id, float x, float y, float z, string destination) : base(id, x, y, z){
         this.destination = destination;
     }
 }
 
-//Clases de la lista de agentes
+//Contains data of every all agents
 [Serializable]
 public class AgentsData{
 
@@ -85,11 +85,11 @@ public class RoadsData{
 }
 
 [Serializable]
-public class TrafficLightsData{
+public class TLightsData{
 
-    public List<TrafficLightData> data;
+    public List<TLightData> data;
 
-    public TrafficLightsData() => this.data = new List<TrafficLightData>();
+    public TLightsData() => this.data = new List<TLightData>();
     
 }
 
@@ -115,7 +115,8 @@ public class AgentController : MonoBehaviour {
 
     CarsData carsData;
     RoadsData roadsData;
-    TrafficLightsData trafficLightsData;
+    AgentsData trafficLightsData;
+    TLightsData tLightsData;
     AgentsData buildingData;
     AgentsData destinationsData;
 
@@ -128,7 +129,7 @@ public class AgentController : MonoBehaviour {
 
     public GameObject[] carPrefabsVariant, destinationsPrefabsVariant, buildingsPrefabsVariant;
 
-    public string MapPath = "Assets/Data/2022_prueba.txt";
+    public string MapPath = "../AgentsModel&Servers/city_files/2022_prueba.txt";
 
     public float timeToUpdate = 5.0f;
 
@@ -139,7 +140,8 @@ public class AgentController : MonoBehaviour {
     void Start(){
         roadsData = new RoadsData();
         carsData = new CarsData();
-        trafficLightsData = new TrafficLightsData();
+        trafficLightsData = new AgentsData();
+        tLightsData = new TLightsData();
         buildingData = new AgentsData();
         destinationsData = new AgentsData();
 
@@ -158,7 +160,7 @@ public class AgentController : MonoBehaviour {
 
     }
 
-    private void Update() {
+    private void Update(){
         if(timer < 0){
             timer = timeToUpdate;
             updated = false;
@@ -170,11 +172,11 @@ public class AgentController : MonoBehaviour {
             dt = 1.0f - (timer / timeToUpdate);
 
             foreach (var car in currPositions){
-                Vector3 currentPositions = car.Value;
-                Vector3 previousPositions = prevPositions[car.Key];
+                Vector3 currentPosition = car.Value;
+                Vector3 previousPosition = prevPositions[car.Key];
 
-                Vector3 interpolated = Vector3.Lerp(previousPositions, currentPositions, dt);
-                Vector3 direction = currentPositions - interpolated;
+                Vector3 interpolated = Vector3.Lerp(previousPosition, currentPosition, dt);
+                Vector3 direction = currentPosition - interpolated;
 
                 cars[car.Key].transform.localPosition = interpolated;
                 if(direction != Vector3.zero){
@@ -182,105 +184,191 @@ public class AgentController : MonoBehaviour {
                 }
             }
         }
+    }
+    IEnumerator UpdateSimulation(){
+        UnityWebRequest www = UnityWebRequest.Get(serverUrl + updateEndpoint);
+        yield return www.SendWebRequest();
 
-        IEnumerator UpdateSimulation(){
-            UnityWebRequest www = UnityWebRequest.Get(serverUrl + updateEndpoint);
-            yield return www.SendWebRequest();
 
-
-            if (www.result != UnityWebRequest.Result.Success){
-                Debug.Log(www.error);
-            }
-            else{
-                StartCoroutine(GetCarsData());
-                StartCoroutine(GetTrafficLightsData());
-
-            }
-        
+        if (www.result != UnityWebRequest.Result.Success){
+            Debug.Log(www.error);
         }
+        else{
+            StartCoroutine(GetCarsData());
+            StartCoroutine(GetTrafficLightsData());
+            Debug.Log("Simulation Updated");
+        }
+    
+    }
 
-        IEnumerator SendConfiguration(){
-            WWWForm form = new WWWForm();
+    IEnumerator SendConfiguration(){
+        WWWForm form = new WWWForm();
 
-            form.AddField("MapPath", MapPath.ToString());
+        form.AddField("MapPath", MapPath.ToString());
 
-            UnityWebRequest www = UnityWebRequest.Post(serverUrl + sendConfigEndpoint, form);
-            www.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        UnityWebRequest www = UnityWebRequest.Post(serverUrl + sendConfigEndpoint, form);
+        www.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
-            yield return www.SendWebRequest();
+        yield return www.SendWebRequest();
 
-            if (www.result != UnityWebRequest.Result.Success){
-                Debug.Log(www.error);
-            }
-            else{
-                StartCoroutine(GetRoadsData());
-                StartCoroutine(GetTrafficLightsData());
-                StartCoroutine(GetCarsData());
-                StartCoroutine(GetDestinationsData());
-                StartCoroutine(GetBuildingsData());
-            }
+        if (www.result != UnityWebRequest.Result.Success){
+            Debug.Log(www.error);
+        }
+        else{
+            StartCoroutine(GetRoadsData());
+            StartCoroutine(GetTrafficLightsData());
+            StartCoroutine(GetCarsData());
+            StartCoroutine(GetDestinationsData());
+            StartCoroutine(GetBuildingsData());
 
         }
-
-        IEnumerator GetRoadsData(){
-            UnityWebRequest www = UnityWebRequest.Get(serverUrl + getRoadEndpoint);
-            yield return www.SendWebRequest();
-
-            if (www.result != UnityWebRequest.Result.Success){
-                Debug.Log(www.error);
-            }
-            else{
-
-                roadsData = JsonUtility.FromJson<RoadsData>(www.downloadHandler.text);
-
-                foreach (RoadData road in roadsData.data){
-                    if(!roadsStarted){
-                        roads[road.id] = Instantiate(roadPrefab, new Vector3(road.x, road.y, road.z), Quaternion.identity);
-                        if(road.direction == "Up" || road.direction == "Down"){
-                            roads[road.id].transform.Rotate(0, 90, 0);
-                        }
-                    }
-                }
-                updated = true;
-                if(!roadsStarted){
-                    roadsStarted = true;
-                }
-            }
-        }
-
-        IEnumerator GetCarsData(){
-            UnityWebRequest www = UnityWebRequest.Get(serverUrl + getCarsEndpoint);
-            yield return www.SendWebRequest();
-
-            if (www.result != UnityWebRequest.Result.Success){
-                Debug.Log(www.error);
-            }
-            else{
-                
-                carsSpawned = 0;
-                carsData = JsonUtility.FromJson<CarsData>(www.downloadHandler.text);
-
-                foreach (CarData car in carsData.data){
-                    if(!carsStarted){
-                        cars[car.id] = Instantiate(carPrefabsVariant[UnityEngine.Random.Range(0, carPrefabsVariant.Length)], new Vector3(car.x, car.y, car.z), Quaternion.identity);
-                        cars[car.id].transform.parent = GameObject.Find("Cars").transform;
-                        carsSpawned++;
-                    }
-                    prevPositions[car.id] = new Vector3(car.x, car.y, car.z);
-                    currPositions[car.id] = new Vector3(car.x, car.y, car.z);
-                }
-                updated = true;
-                if(!carsStarted){
-                    carsStarted = true;
-                }
-            }
-        }
-        
-
-
 
     }
 
+    IEnumerator GetRoadsData(){
+        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getRoadEndpoint);
+        yield return www.SendWebRequest();
+
+        if (www.result != UnityWebRequest.Result.Success){
+            Debug.Log(www.error);
+        }
+        else{
+            string jsonData = www.downloadHandler.text;
+
+            Debug.Log("Received Roads Data: " + jsonData);
+
+            roadsData = JsonUtility.FromJson<RoadsData>(jsonData);
+
+            foreach (RoadData road in roadsData.data){
+                if(!roadsStarted){
+                    roads[road.id] = Instantiate(roadPrefab, new Vector3(road.x, road.y, road.z), Quaternion.identity);
+                    // if(road.direction == "Up" || road.direction == "Down"){
+                    //     roads[road.id].transform.Rotate(0, 90, 0);
+                    // }
+                }
+            }
+            updated = true;
+            if(!roadsStarted){
+                roadsStarted = true;
+            }
+        }
+    }
+
+    IEnumerator GetCarsData(){
+        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getCarsEndpoint);
+        yield return www.SendWebRequest();
+
+        if (www.result != UnityWebRequest.Result.Success){
+            Debug.Log(www.error);
+        }
+        else{
+            
+            carsSpawned = 0;
+            carsData = JsonUtility.FromJson<CarsData>(www.downloadHandler.text);
+
+            foreach (CarData car in carsData.data){
+                Vector3 newCarPosition = new Vector3(car.x, car.y, car.z);
+
+                if(!carsStarted){
+                    prevPositions[car.id] = newCarPosition;
+                    GameObject carPrefab = carPrefabsVariant[UnityEngine.Random.Range(0, carPrefabsVariant.Length)];
+                    cars[car.id] = Instantiate(carPrefab, newCarPosition, Quaternion.identity);
+                }
+                else{
+                    Vector3 currentPosition = new Vector3();
+
+                    if(!cars.ContainsKey(car.id)){
+                        prevPositions[car.id] = newCarPosition;
+                        GameObject carPrefab = carPrefabsVariant[UnityEngine.Random.Range(0, carPrefabsVariant.Length)];
+                        cars[car.id] = Instantiate(carPrefab, newCarPosition, Quaternion.identity);
+                    }
+
+                    if (currPositions.TryGetValue(car.id, out currentPosition)){
+                        prevPositions[car.id] = currentPosition;
+                    }
+                    currPositions[car.id] = newCarPosition;
+
+                }
+
+                carsSpawned++;
+            }
+            Debug.Log("Cars Spawned: " + carsSpawned);
+
+            updated = true;
+            if(!carsStarted){
+                carsStarted = true;
+            }
+        }
+    }
 
 
+    IEnumerator GetTrafficLightsData(){
+        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getTrafficLightsEndpoint);
+        yield return www.SendWebRequest();
+
+        if (www.result != UnityWebRequest.Result.Success){
+            Debug.Log(www.error);
+        }
+        else{
+            trafficLightsData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
+
+            foreach (AgentData tLight in trafficLightsData.positions){
+                if(!tLightsStarted){
+                    tLights[tLight.id] = Instantiate(tLightsPrefab, new Vector3(tLight.x, tLight.y, tLight.z), Quaternion.identity);
+                }
+                
+            }
+            updated = true;
+            if(!tLightsStarted){
+                tLightsStarted = true;
+            }
+        }
+    }
+
+
+    IEnumerator GetDestinationsData(){
+        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getDestinationsEndpoint);
+        yield return www.SendWebRequest();
+
+        if (www.result != UnityWebRequest.Result.Success){
+            Debug.Log(www.error);
+        }
+        else{
+            destinationsData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
+
+            foreach (AgentData destination in destinationsData.positions){
+                if(!destinationsStarted){
+                    GameObject destinationPrefab = destinationsPrefabsVariant[UnityEngine.Random.Range(0, destinationsPrefabsVariant.Length)];
+                    destinations[destination.id] = Instantiate(destinationPrefab, new Vector3(destination.x, destination.y, destination.z), Quaternion.identity);
+                }
+            }
+            updated = true;
+            if(!destinationsStarted){
+                destinationsStarted = true;
+            }
+        }
+    }
+
+    IEnumerator GetBuildingsData(){
+        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getBuildingsEndpoint);
+        yield return www.SendWebRequest();
+
+        if (www.result != UnityWebRequest.Result.Success){
+            Debug.Log(www.error);
+        }
+        else{
+            buildingData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
+
+            foreach (AgentData building in buildingData.positions){
+                if(!buildingsStarted){
+                    GameObject buildingPrefab = buildingsPrefabsVariant[UnityEngine.Random.Range(0, buildingsPrefabsVariant.Length)];
+                    buildings[building.id] = Instantiate(buildingPrefab, new Vector3(building.x, building.y, building.z), Quaternion.identity);
+                }
+            }
+            updated = true;
+            if(!buildingsStarted){
+                buildingsStarted = true;
+            }
+        }
+    }
 }

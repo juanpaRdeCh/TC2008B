@@ -442,7 +442,7 @@ class CityModel(Model):
 
     def step(self):
         """Advance the model by one step."""
-
+        
         self.schedule.step()
 
         # Create a new Car agent at each corner every 10 steps
