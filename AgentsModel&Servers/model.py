@@ -4,11 +4,6 @@ from mesa.space import MultiGrid
 from agent import *
 import json
 
-cars = {}
-road = {}
-traffic_lights = {}
-destination = {}
-buidings = {}
 
 class CityModel(Model):
     """
@@ -18,7 +13,7 @@ class CityModel(Model):
         N: Number of agents in the simulation
     """
 
-    def __init__(self, map_path):
+    def __init__(self, N):
         # Load the map dictionary. The dictionary maps the characters in the map file to the corresponding agent.
         dataDictionary = json.load(open("city_files/mapDictionary.json"))
 
@@ -76,26 +71,7 @@ class CityModel(Model):
                 self.schedule.add(Agent)
                 self.grid.place_agent(Agent, pos)
 
-        self.num_agents = 0
-        
-        for agents, (x, y) in self.grid.coord_iter():
-            for agent in agents:
-                if isinstance(agent, Car):
-                    cars[agent.unique_id] = agent
-                    # print(cars[agent.unique_id].unique_id, cars[agent.unique_id].pos, cars[agent.unique_id].destination)
-                elif isinstance(agent, Road):
-                    road[agent.unique_id] = agent
-                    # print(agent.unique_id, agent.pos, agent.direction)
-                elif isinstance(agent, Traffic_Light):
-                    traffic_lights[agent.unique_id] = agent
-                    # print(agent.unique_id, agent.pos, agent.state)
-                elif isinstance(agent, Destination):
-                    destination[agent.unique_id] = agent
-                    # print(agent.unique_id, agent.pos)
-                elif isinstance(agent, Obstacle):
-                    buidings[agent.unique_id] = agent
-                    # print(agent.unique_id, agent.pos)
-                
+        self.num_agents = N
         self.running = True
 
     def create_graph(self):
@@ -435,14 +411,27 @@ class CityModel(Model):
                             if isinstance(current_agent, Destination):
                                 G.add_edge(neighbor, current_node, weight=1)
 
-        # pos = {node: (node[0], node[1]) for node in G.nodes()}
-        # nx.draw(G, pos, with_labels=False, font_weight="bold")
-        # plt.show()
+        pos = {node: (node[0], node[1]) for node in G.nodes()}
+        nx.draw(G, pos, with_labels=False, font_weight="bold")
+        plt.show()
         self.graph = G
+
+    def update_graph_weights(self):
+        for node in self.graph.nodes():
+            if isinstance(self.grid.get_cell_list_contents([node])[0], Car):
+                # Si hay un Car en el nodo, actualizar los pesos de los bordes conectados a ese nodo a 3
+                for neighbor in self.graph.neighbors(node):
+                    self.graph.edges[node, neighbor]["weight"] = 50
+            else:
+                # Si no hay un Car en el nodo, volver a establecer los pesos de los bordes a 1
+                for neighbor in self.graph.neighbors(node):
+                    self.graph.edges[node, neighbor]["weight"] = 1
 
     def step(self):
         """Advance the model by one step."""
-        
+        original_graph = self.graph.copy()
+        self.update_graph_weights()
+
         self.schedule.step()
 
         # Create a new Car agent at each corner every 10 steps
@@ -458,3 +447,4 @@ class CityModel(Model):
                 self.num_agents += 1
                 self.grid.place_agent(new_agent, corner)
                 self.schedule.add(new_agent)
+        self.graph = original_graph

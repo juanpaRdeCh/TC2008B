@@ -42,23 +42,111 @@ class Car(Agent):
 
     def move_to_destination(self):
         if self.destination is not None:
-            current_position = self.pos
-            destination_position = self.destination.pos
+            if self.trafficlightstate() and self.avoid_car_collision():
+                current_position = self.pos
+                destination_position = self.destination.pos
 
-            try:
-                path = nx.astar_path(self.graph, current_position, destination_position)
-            except nx.NetworkXNoPath:
-                print("No path found")
-                return
-            if path:
-                new_position = path[1]
-                self.model.grid.move_agent(self, new_position)
-
-                if new_position == destination_position:
+                try:
+                    path = nx.astar_path(
+                        self.graph, current_position, destination_position
+                    )
+                except nx.NetworkXNoPath:
+                    print("No path found")
+                    return
+                if path:
+                    new_position = path[1]
                     self.model.grid.move_agent(self, new_position)
-                    self.model.schedule.remove(self)
-                    self.model.grid.remove_agent(self)
-                    print("Destination reached")
+
+                    if new_position == destination_position:
+                        self.model.grid.move_agent(self, new_position)
+                        self.model.schedule.remove(self)
+                        self.model.grid.remove_agent(self)
+                        print("Destination reached")
+        else:
+            print("Traffic light is red. Waiting...")
+            self.moving = False
+
+    def avoid_car_collision(self):
+        """
+        Determines if there is a car in the current direction of movement. If there is, the car agent stops until the car in front moves.
+        """
+        x, y = self.pos
+        current_node = (x, y)
+
+        # Obtener la próxima posición del agente
+        next_position = self.get_next_position()
+
+        # Calcular la dirección de movimiento
+        direction_of_movement = (next_position[0] - x, next_position[1] - y)
+
+        # Obtener el vecino en la dirección de movimiento
+        neighbor = (x + direction_of_movement[0], y + direction_of_movement[1])
+
+        # Verificar si hay un coche en la dirección de movimiento
+        neighbor_agent = self.model.grid.get_cell_list_contents([neighbor])
+        for agent in neighbor_agent:
+            if isinstance(agent, Car):
+                return False
+        return True
+
+    def trafficlightstate(self):
+        """
+        Determines if the car agent has a neighbor traffic light. If the neighbor traffic light is red, the car agent stops until
+        the traffic light is green. If there is no neighbor traffic light, the car agent continues moving.
+        """
+        x, y = self.pos
+        current_node = (x, y)
+
+        # Obtener la próxima posición del agente
+        next_position = self.get_next_position()
+
+        # Calcular la dirección de movimiento
+        direction_of_movement = (next_position[0] - x, next_position[1] - y)
+
+        # Obtener el vecino en la dirección de movimiento
+        neighbor = (x + direction_of_movement[0], y + direction_of_movement[1])
+
+        # Verificar si hay un semáforo en la dirección de movimiento
+        neighbor_agent = self.model.grid.get_cell_list_contents([neighbor])
+        for agent in neighbor_agent:
+            if isinstance(agent, Traffic_Light):
+                if agent.state == False:
+                    return False
+                else:
+                    return True
+        return True
+
+        # x, y = self.pos
+        # current_node = (x, y)
+        # neighbors = self.model.grid.get_neighborhood(
+        #     current_node, moore=False, include_center=False
+        # )  # Obtener vecinos
+        # for neighbor in neighbors:
+        #     neighbor_agent = self.model.grid.get_cell_list_contents([neighbor])
+        #     for agent in neighbor_agent:
+        #         if isinstance(agent, Traffic_Light):
+        #             if agent.state == False:
+        #                 return False
+        #             else:
+        #                 return True
+        # return True
+
+    def get_next_position(self):
+        """
+        Get the next position the car is planning to move to.
+        """
+        current_position = self.pos
+        destination_position = self.destination.pos
+
+        try:
+            path = nx.astar_path(self.graph, current_position, destination_position)
+            if len(path) > 1:
+                return path[1]
+            else:
+                return current_position
+        except nx.NetworkXNoPath:
+            print("No path found")
+            return current_position
 
     def move(self):
         """
