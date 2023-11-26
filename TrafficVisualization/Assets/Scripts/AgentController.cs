@@ -115,8 +115,7 @@ public class AgentController : MonoBehaviour {
 
     CarsData carsData;
     RoadsData roadsData;
-    AgentsData trafficLightsData;
-    TLightsData tLightsData;
+    TLightsData trafficLightsData;
     AgentsData buildingData;
     AgentsData destinationsData;
 
@@ -140,8 +139,7 @@ public class AgentController : MonoBehaviour {
     void Start(){
         roadsData = new RoadsData();
         carsData = new CarsData();
-        trafficLightsData = new AgentsData();
-        tLightsData = new TLightsData();
+        trafficLightsData = new TLightsData();
         buildingData = new AgentsData();
         destinationsData = new AgentsData();
 
@@ -195,7 +193,7 @@ public class AgentController : MonoBehaviour {
         }
         else{
             StartCoroutine(GetCarsData());
-            StartCoroutine(GetTrafficLightsData());
+            StartCoroutine(GetTLightsData());
             Debug.Log("Simulation Updated");
         }
     
@@ -216,7 +214,7 @@ public class AgentController : MonoBehaviour {
         }
         else{
             StartCoroutine(GetRoadsData());
-            StartCoroutine(GetTrafficLightsData());
+            StartCoroutine(GetTLightsData());
             StartCoroutine(GetCarsData());
             StartCoroutine(GetDestinationsData());
             StartCoroutine(GetBuildingsData());
@@ -242,9 +240,9 @@ public class AgentController : MonoBehaviour {
             foreach (RoadData road in roadsData.data){
                 if(!roadsStarted){
                     roads[road.id] = Instantiate(roadPrefab, new Vector3(road.x, road.y, road.z), Quaternion.identity);
-                    // if(road.direction == "Up" || road.direction == "Down"){
-                    //     roads[road.id].transform.Rotate(0, 90, 0);
-                    // }
+                    if(road.direction == "Left" || road.direction == "Right"){
+                        roads[road.id].transform.Rotate(0, 90, 0);
+                    }
                 }
             }
             updated = true;
@@ -254,7 +252,7 @@ public class AgentController : MonoBehaviour {
         }
     }
 
-    IEnumerator GetCarsData(){
+    IEnumerator GetCarsData(){ //Work in progress
         UnityWebRequest www = UnityWebRequest.Get(serverUrl + getCarsEndpoint);
         yield return www.SendWebRequest();
 
@@ -301,8 +299,7 @@ public class AgentController : MonoBehaviour {
         }
     }
 
-
-    IEnumerator GetTrafficLightsData(){
+    IEnumerator GetTLightsData(){ //Work in progress
         UnityWebRequest www = UnityWebRequest.Get(serverUrl + getTrafficLightsEndpoint);
         yield return www.SendWebRequest();
 
@@ -310,12 +307,22 @@ public class AgentController : MonoBehaviour {
             Debug.Log(www.error);
         }
         else{
-            trafficLightsData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
+            trafficLightsData = JsonUtility.FromJson<TLightsData>(www.downloadHandler.text);
 
-            foreach (AgentData tLight in trafficLightsData.positions){
+            foreach (TLightData tLight in trafficLightsData.data){
                 if(!tLightsStarted){
+                    tLights[tLight.id] = Instantiate(roadPrefab, new Vector3(tLight.x, tLight.y = 0, tLight.z), Quaternion.identity);
                     tLights[tLight.id] = Instantiate(tLightsPrefab, new Vector3(tLight.x, tLight.y, tLight.z), Quaternion.identity);
                 }
+                else{
+                    if(tLight.state){
+                        tLights[tLight.id].GetComponent<Renderer>().material.color = Color.green;
+                    }
+                    else{
+                        tLights[tLight.id].GetComponent<Renderer>().material.color = Color.red;
+                    }
+                }
+                
                 
             }
             updated = true;

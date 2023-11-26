@@ -23,7 +23,7 @@ def get_cars():
     global cityModel
     
     if request.method == 'GET':
-        carData = [{"id": str(Agent.unique_id), "x": Agent.pos[0], "y": 0, "z":Agent.pos[1], "destination": Agent.destination.pos}
+        carData = [{"id": str(Agent.unique_id), "x": Agent.pos[0], "y": 0.169, "z":Agent.pos[1], "destination": Agent.destination.pos}
                    for Agent in cars.values()]
         return jsonify({"data": carData})
 
@@ -42,9 +42,9 @@ def get_traffic_lights():
     global cityModel
     
     if request.method == 'GET':
-        trafficLightPositions = [{"id": str(tls.unique_id), "x": tls.pos[0], "y": 0.7, "z":tls.pos[1]}
+        trafficLightPositions = [{"id": str(tls.unique_id), "x": tls.pos[0], "y": 0.7, "z":tls.pos[1], "state": tls.state}
                    for tls in traffic_lights.values()]
-        return jsonify({"positions": trafficLightPositions})
+        return jsonify({"data": trafficLightPositions})
 
 @app.route('/getDestinations', methods=['GET'])
 def get_destinations():

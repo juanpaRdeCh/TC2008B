@@ -4,6 +4,11 @@ from mesa.space import MultiGrid
 from agent import *
 import json
 
+cars = {}
+road = {}
+traffic_lights = {}
+destination = {}
+buidings = {}
 
 class CityModel(Model):
     """
@@ -13,11 +18,12 @@ class CityModel(Model):
         N: Number of agents in the simulation
     """
 
-    def __init__(self, N):
+    def __init__(self, map_path):
         # Load the map dictionary. The dictionary maps the characters in the map file to the corresponding agent.
         dataDictionary = json.load(open("city_files/mapDictionary.json"))
 
         self.traffic_lights = []
+        
 
         # Load the map file. The map file is a text file where each character represents an agent.
         with open("city_files/2022_base.txt") as baseFile:
@@ -66,12 +72,31 @@ class CityModel(Model):
 
             self.create_graph()
 
+            
             for i, pos in enumerate(corners):
                 Agent = Car(i + 1000, self, self.graph)
                 self.schedule.add(Agent)
                 self.grid.place_agent(Agent, pos)
+            
+            self.num_agents = 0
 
-        self.num_agents = N
+            for agents, (x, y) in self.grid.coord_iter():
+                for agent in agents:
+                    if isinstance(agent, Car):
+                        cars[agent.unique_id] = agent
+                        # print(cars[agent.unique_id].unique_id, cars[agent.unique_id].pos, cars[agent.unique_id].destination)
+                    elif isinstance(agent, Road):
+                        road[agent.unique_id] = agent
+                        # print(agent.unique_id, agent.pos, agent.direction)
+                    elif isinstance(agent, Traffic_Light):
+                        traffic_lights[agent.unique_id] = agent
+                        # print(agent.unique_id, agent.pos, agent.state)
+                    elif isinstance(agent, Destination):
+                        destination[agent.unique_id] = agent
+                        # print(agent.unique_id, agent.pos)
+                    elif isinstance(agent, Obstacle):
+                        buidings[agent.unique_id] = agent
+                        # print(agent.unique_id, agent.pos)
         self.running = True
 
     def create_graph(self):
@@ -411,9 +436,9 @@ class CityModel(Model):
                             if isinstance(current_agent, Destination):
                                 G.add_edge(neighbor, current_node, weight=1)
 
-        pos = {node: (node[0], node[1]) for node in G.nodes()}
-        nx.draw(G, pos, with_labels=False, font_weight="bold")
-        plt.show()
+        # pos = {node: (node[0], node[1]) for node in G.nodes()}
+        # nx.draw(G, pos, with_labels=False, font_weight="bold")
+        # plt.show()
         self.graph = G
 
     def update_graph_weights(self):
