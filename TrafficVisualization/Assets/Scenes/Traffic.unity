@@ -152,21 +152,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b88f72036869df145b7c896ae0f64feb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roadPrefab: {fileID: 444268482812711753, guid: 42fb5914a4a79104bb63aff6e5ceba44, type: 3}
-  tLightsPrefab: {fileID: 5742778552415708618, guid: 2723b5f314c8e374db6f436613ad87ee, type: 3}
+  roadPrefab: {fileID: 5641152172409129482, guid: c8d9ce4b3971d8643a4f8f28e47f4c2f, type: 3}
+  tLightsPrefab: {fileID: 1024909137633566, guid: 4270f2a69da41c04f9d1bb111e805c6a, type: 3}
   carPrefabsVariant:
-  - {fileID: 6194194650181410356, guid: 9c953cdb5f1ca9349949258536c2a7a5, type: 3}
-  - {fileID: 3603064717046630734, guid: 0bd15543d70c93f4eaa210abbd3bd14d, type: 3}
-  - {fileID: 8772056973739142154, guid: 357082829cfc1014da9716b4330450c6, type: 3}
-  - {fileID: 6213934691244005312, guid: f34a11d3c4d59e244ba36a07f9edbf6e, type: 3}
+  - {fileID: 4695957159649180562, guid: d8a38e887e96d694894a36eaf7ec145b, type: 3}
+  - {fileID: 2672864514906475514, guid: 22c9c216bad815c41ab718efa15f912b, type: 3}
+  - {fileID: 864538881232866547, guid: a686086459191ea4994078fe68c2bf63, type: 3}
+  - {fileID: 4849416383976443089, guid: 1d0173f883989e14493677c41ae5a073, type: 3}
   destinationsPrefabsVariant:
-  - {fileID: 2743840960320235440, guid: 7fd89d4451dba024ebe1d6bb3e240317, type: 3}
-  - {fileID: 5023996668343874749, guid: 8e990f5029dd7b64db636bf54d91b7ee, type: 3}
-  - {fileID: 3890676534381705013, guid: 0ee086d5be951e04e948d66449c4e73f, type: 3}
+  - {fileID: 3520681445263854137, guid: e478292f536a7134e8e48cb62cf2be07, type: 3}
+  - {fileID: 363025940278517486, guid: eb1a3f979ef5c8743a26ef5a30ec6511, type: 3}
+  - {fileID: 8273424752105082923, guid: c1d3259b1b00f2745934a591a64234a2, type: 3}
   buildingsPrefabsVariant:
-  - {fileID: 1846017344627202159, guid: f17d304fafd5e6d41b8d1d7f2de8d52c, type: 3}
-  - {fileID: 7747373753945619130, guid: 08909b2a4e3644f49aeae1fbe0252c8f, type: 3}
-  - {fileID: 6601103100409735276, guid: 12384fa947b28f8468ea8cb54b396f67, type: 3}
+  - {fileID: 8537673697885705002, guid: dca6cf054ebcb5349a8333d108c74279, type: 3}
+  - {fileID: 4722627683411591535, guid: 580e175accc4f644e8c5daa4090d0293, type: 3}
   MapPath: ../AgentsModel&Servers/city_files/2022_prueba.txt
   timeToUpdate: 1
 --- !u!4 &379794863

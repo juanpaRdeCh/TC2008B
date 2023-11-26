@@ -4,11 +4,6 @@ from mesa.space import MultiGrid
 from agent import *
 import json
 
-cars = {}
-road = {}
-traffic_lights = {}
-destination = {}
-buidings = {}
 
 class CityModel(Model):
     """
@@ -24,6 +19,11 @@ class CityModel(Model):
 
         self.traffic_lights = []
         
+        self.cars = {}
+        self.road = {}
+        self.traffic_lights1 = {}
+        self.destination = {}
+        self.buidings = {}
 
         # Load the map file. The map file is a text file where each character represents an agent.
         with open("city_files/2022_base.txt") as baseFile:
@@ -78,25 +78,26 @@ class CityModel(Model):
                 self.schedule.add(Agent)
                 self.grid.place_agent(Agent, pos)
             
-            self.num_agents = 0
+            self.num_agents = 1004
 
             for agents, (x, y) in self.grid.coord_iter():
                 for agent in agents:
                     if isinstance(agent, Car):
-                        cars[agent.unique_id] = agent
+                        self.cars[agent.unique_id] = agent
                         # print(cars[agent.unique_id].unique_id, cars[agent.unique_id].pos, cars[agent.unique_id].destination)
                     elif isinstance(agent, Road):
-                        road[agent.unique_id] = agent
+                        self.road[agent.unique_id] = agent
                         # print(agent.unique_id, agent.pos, agent.direction)
                     elif isinstance(agent, Traffic_Light):
-                        traffic_lights[agent.unique_id] = agent
+                        self.traffic_lights1[agent.unique_id] = agent
                         # print(agent.unique_id, agent.pos, agent.state)
                     elif isinstance(agent, Destination):
-                        destination[agent.unique_id] = agent
+                        self.destination[agent.unique_id] = agent
                         # print(agent.unique_id, agent.pos)
                     elif isinstance(agent, Obstacle):
-                        buidings[agent.unique_id] = agent
+                        self.buidings[agent.unique_id] = agent
                         # print(agent.unique_id, agent.pos)
+                        
         self.running = True
 
     def create_graph(self):
@@ -470,6 +471,7 @@ class CityModel(Model):
             for corner in corners:
                 new_agent = Car(self.num_agents + 1, self, self.graph)
                 self.num_agents += 1
+                self.cars[new_agent.unique_id] = new_agent
                 self.grid.place_agent(new_agent, corner)
                 self.schedule.add(new_agent)
         self.graph = original_graph

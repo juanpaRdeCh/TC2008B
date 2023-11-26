@@ -1,5 +1,5 @@
 from agent import Car, Traffic_Light, Destination, Obstacle, Road
-from model import CityModel, cars, traffic_lights, destination, buidings, road
+from model import CityModel
 from flask import Flask, request, jsonify
 
 app = Flask("Traffic Simulator")
@@ -24,7 +24,7 @@ def get_cars():
     
     if request.method == 'GET':
         carData = [{"id": str(Agent.unique_id), "x": Agent.pos[0], "y": 0.169, "z":Agent.pos[1], "destination": Agent.destination.pos}
-                   for Agent in cars.values()]
+                   for Agent in cityModel.cars.values()]
         return jsonify({"data": carData})
 
 @app.route('/getRoads', methods=['GET'])
@@ -33,7 +33,7 @@ def get_roads():
     
     if request.method == 'GET':
         roadData = [{"id": str(road.unique_id), "x": road.pos[0], "y": 0, "z":road.pos[1], "direction": road.direction}
-                   for road in road.values()]
+                   for road in cityModel.road.values()]
         return jsonify({"data": roadData})
         
 
@@ -43,7 +43,7 @@ def get_traffic_lights():
     
     if request.method == 'GET':
         trafficLightPositions = [{"id": str(tls.unique_id), "x": tls.pos[0], "y": 0.7, "z":tls.pos[1], "state": tls.state}
-                   for tls in traffic_lights.values()]
+                   for tls in cityModel.traffic_lights1.values()]
         return jsonify({"data": trafficLightPositions})
 
 @app.route('/getDestinations', methods=['GET'])
@@ -52,7 +52,7 @@ def get_destinations():
     
     if request.method == 'GET':
         destinationPositions = [{"id": str(des.unique_id), "x": des.pos[0], "y": 0.01, "z":des.pos[1]}
-                   for des in destination.values()]
+                   for des in cityModel.destination.values()]
         return jsonify({"positions": destinationPositions})
         
 @app.route('/getObstacles', methods=['GET'])
@@ -61,7 +61,7 @@ def get_obstacles():
     
     if request.method == 'GET':
         obstaclePositions = [{"id": str(obs.unique_id), "x": obs.pos[0], "y": 0.01, "z":obs.pos[1]}
-                   for obs in buidings.values()]
+                   for obs in cityModel.buidings.values()]
         return jsonify({"positions": obstaclePositions})
 
 @app.route('/update', methods=['GET'])
