@@ -18,7 +18,7 @@ class CityModel(Model):
         dataDictionary = json.load(open("city_files/mapDictionary.json"))
 
         self.traffic_lights = []
-        
+
         self.cars = {}
         self.road = {}
         self.traffic_lights1 = {}
@@ -72,12 +72,11 @@ class CityModel(Model):
 
             self.create_graph()
 
-            
             for i, pos in enumerate(corners):
                 Agent = Car(i + 1000, self, self.graph)
                 self.schedule.add(Agent)
                 self.grid.place_agent(Agent, pos)
-            
+
             self.num_agents = 1004
 
             for agents, (x, y) in self.grid.coord_iter():
@@ -97,7 +96,7 @@ class CityModel(Model):
                     elif isinstance(agent, Obstacle):
                         self.buidings[agent.unique_id] = agent
                         # print(agent.unique_id, agent.pos)
-                        
+
         self.running = True
 
     def create_graph(self):
@@ -393,36 +392,113 @@ class CityModel(Model):
                                                         direction=direction,
                                                     )
 
-                    neighbors = self.grid.get_neighborhood(
-                        current_node, moore=False, include_center=False
-                    )
-                    for neighbor in neighbors:
-                        neighbor_contents = self.grid.get_cell_list_contents(neighbor)
-                        if any(
-                            isinstance(agent, (Road, Traffic_Light, Destination))
-                            for agent in neighbor_contents
-                        ):
-                            if isinstance(current_agent, Traffic_Light):
-                                # Añade la dirección del semáforo como atributo del borde
-                                road_direction = [
-                                    a.direction
-                                    for a in neighbor_contents
-                                    if isinstance(a, Road)
-                                ]
-                                if road_direction:
-                                    road_direction = road_direction[0]
-                                    G.add_edge(
-                                        neighbor,
-                                        current_node,
-                                        weight=1,
-                                        traffic_light_direction=road_direction,
-                                    )
-                                    G.add_edge(
-                                        current_node,
-                                        neighbor,
-                                        weight=1,
-                                        traffic_light_direction=road_direction,
-                                    )
+                        neighbors = self.grid.get_neighborhood(
+                            current_node, moore=False, include_center=False
+                        )
+
+                for neighbor in neighbors:
+                    neighbor_contents = self.grid.get_cell_list_contents(neighbor)
+
+                    if any(
+                        isinstance(agent, (Road, Traffic_Light, Destination))
+                        for agent in neighbor_contents
+                    ):
+                        if isinstance(current_agent, Traffic_Light):
+                            road_neighbor = next(
+                                (
+                                    agent
+                                    for agent in neighbor_contents
+                                    if isinstance(agent, Road)
+                                ),
+                                None,
+                            )
+
+                            if (
+                                road_neighbor
+                                and road_neighbor.direction == "Right"
+                                and x > neighbor[0]
+                            ):
+                                G.add_edge(neighbor, current_node, weight=1)
+                            elif (
+                                road_neighbor
+                                and road_neighbor.direction == "Right"
+                                and x < neighbor[0]
+                            ):
+                                G.add_edge(current_node, neighbor, weight=1)
+                            elif (
+                                road_neighbor
+                                and road_neighbor.direction == "Up-Right"
+                                and y > neighbor[1]
+                            ):
+                                G.add_edge(current_node, neighbor, weight=1)
+                            elif (
+                                road_neighbor
+                                and road_neighbor.direction == "Up-Right"
+                                and y < neighbor[1]
+                            ):
+                                G.add_edge(neighbor, current_node, weight=1)
+                            elif (
+                                road_neighbor
+                                and road_neighbor.direction == "Left"
+                                and x < neighbor[0]
+                            ):
+                                G.add_edge(neighbor, current_node, weight=1)
+                            elif (
+                                road_neighbor
+                                and road_neighbor.direction == "Left"
+                                and x > neighbor[0]
+                            ):
+                                G.add_edge(current_node, neighbor, weight=1)
+                            elif (
+                                road_neighbor
+                                and road_neighbor.direction == "Down"
+                                and y > neighbor[1]
+                            ):
+                                G.add_edge(current_node, neighbor, weight=1)
+                            elif (
+                                road_neighbor
+                                and road_neighbor.direction == "Down"
+                                and y < neighbor[1]
+                            ):
+                                G.add_edge(neighbor, current_node, weight=1)
+                            elif (
+                                road_neighbor
+                                and road_neighbor.direction == "Right"
+                                and y > neighbor[1]
+                            ):
+                                G.add_edge(current_node, neighbor, weight=1)
+                            elif (
+                                road_neighbor
+                                and road_neighbor.direction == "Down"
+                                and x > neighbor[0]
+                            ):
+                                G.add_edge(current_node, neighbor, weight=1)
+                            elif (
+                                road_neighbor
+                                and road_neighbor.direction == "Up"
+                                and y > neighbor[1]
+                            ):
+                                G.add_edge(neighbor, current_node, weight=1)
+                            elif (
+                                road_neighbor
+                                and road_neighbor.direction == "Up"
+                                and y < neighbor[1]
+                            ):
+                                G.add_edge(current_node, neighbor, weight=1)
+                            elif (
+                                road_neighbor
+                                and road_neighbor.direction == "Left"
+                                and y < neighbor[1]
+                            ):
+                                G.add_edge(current_node, neighbor, weight=1)
+                            elif (
+                                road_neighbor
+                                and road_neighbor.direction == "Up"
+                                and x < neighbor[0]
+                            ):
+                                G.add_edge(current_node, neighbor, weight=1)
+
+                            # Deactiviate moore to connect destination
 
                             neighbors = self.grid.get_neighborhood(
                                 current_node, moore=False, include_center=False
@@ -437,9 +513,9 @@ class CityModel(Model):
                             if isinstance(current_agent, Destination):
                                 G.add_edge(neighbor, current_node, weight=1)
 
-        # pos = {node: (node[0], node[1]) for node in G.nodes()}
-        # nx.draw(G, pos, with_labels=False, font_weight="bold")
-        # plt.show()
+        pos = {node: (node[0], node[1]) for node in G.nodes()}
+        nx.draw(G, pos, with_labels=False, font_weight="bold")
+        plt.show()
         self.graph = G
 
     def update_graph_weights(self):
