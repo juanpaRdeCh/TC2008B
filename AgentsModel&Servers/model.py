@@ -427,6 +427,12 @@ class CityModel(Model):
                                 G.add_edge(current_node, neighbor, weight=1)
                             elif (
                                 road_neighbor
+                                and road_neighbor.direction == "Down-Left"
+                                and x > neighbor[0]
+                            ):
+                                G.add_edge(current_node, neighbor, weight=1)
+                            elif (
+                                road_neighbor
                                 and road_neighbor.direction == "Up-Right"
                                 and y > neighbor[1]
                             ):
@@ -513,9 +519,9 @@ class CityModel(Model):
                             if isinstance(current_agent, Destination):
                                 G.add_edge(neighbor, current_node, weight=1)
 
-        # pos = {node: (node[0], node[1]) for node in G.nodes()}
-        # nx.draw(G, pos, with_labels=False, font_weight="bold")
-        # plt.show()
+        pos = {node: (node[0], node[1]) for node in G.nodes()}
+        nx.draw(G, pos, with_labels=False, font_weight="bold")
+        plt.show()
         self.graph = G
 
     def update_graph_weights(self):
