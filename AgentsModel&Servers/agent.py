@@ -58,12 +58,9 @@ class Car(Agent):
                     self.model.grid.move_agent(self, new_position)
 
                     if new_position == destination_position:
-                        self.model.grid.move_agent(self, new_position)
-                        print(self.unique_id)
                         self.model.schedule.remove(self)
                         self.model.grid.remove_agent(self)
-                        self.model.cars.pop(self.unique_id)  #del
-                        print("Destination reached")
+                        self.model.cars.pop(self.unique_id) 
         else:
             print("Traffic light is red. Waiting...")
             self.moving = False

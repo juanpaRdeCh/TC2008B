@@ -124,7 +124,7 @@ public class AgentController : MonoBehaviour {
 
     bool updated = false, roadsStarted = false, carsStarted = false, tLightsStarted = false, destinationsStarted = false, buildingsStarted = false;
 
-    public GameObject roadPrefab, tLightsPrefab;
+    public GameObject roadPrefab, tLightsPrefab, floorPrefab;
 
     public GameObject[] carPrefabsVariant, destinationsPrefabsVariant, buildingsPrefabsVariant;
 
@@ -194,7 +194,7 @@ public class AgentController : MonoBehaviour {
         else{
             StartCoroutine(GetCarsData());
             StartCoroutine(GetTLightsData());
-            Debug.Log("Simulation Updated");
+            // Debug.Log("Simulation Updated");
         }
     
     }
@@ -233,7 +233,7 @@ public class AgentController : MonoBehaviour {
         else{
             string jsonData = www.downloadHandler.text;
 
-            Debug.Log("Received Roads Data: " + jsonData);
+            // Debug.Log("Received Roads Data: " + jsonData);
 
             roadsData = JsonUtility.FromJson<RoadsData>(jsonData);
 
@@ -260,9 +260,12 @@ public class AgentController : MonoBehaviour {
             Debug.Log(www.error);
         }
         else{
-            
-            carsSpawned = 0;
-            carsData = JsonUtility.FromJson<CarsData>(www.downloadHandler.text);
+            CarsData newCarsData = JsonUtility.FromJson<CarsData>(www.downloadHandler.text);
+
+            RemoveCarsNotInResponse(newCarsData);
+            carsData = newCarsData;
+
+            Debug.Log("Received Cars Data: " + www.downloadHandler.text);
 
             foreach (CarData car in carsData.data){
                 Vector3 newCarPosition = new Vector3(car.x, car.y, car.z);
@@ -270,7 +273,7 @@ public class AgentController : MonoBehaviour {
                 if(!carsStarted){
                     prevPositions[car.id] = newCarPosition;
                     GameObject carPrefab = carPrefabsVariant[UnityEngine.Random.Range(0, carPrefabsVariant.Length)];
-                    cars[car.id] = Instantiate(carPrefab, newCarPosition, Quaternion.identity);
+                    cars[car.id] = Instantiate(carPrefab, newCarPosition, Quaternion.identity); //Change quat to matrix m rotation
                 }
                 else{
                     Vector3 currentPosition = new Vector3();
@@ -285,18 +288,35 @@ public class AgentController : MonoBehaviour {
                         prevPositions[car.id] = currentPosition;
                     }
                     currPositions[car.id] = newCarPosition;
-
+                    
                 }
 
                 carsSpawned++;
             }
-            Debug.Log("Cars Spawned: " + carsSpawned);
 
             updated = true;
             if(!carsStarted){
                 carsStarted = true;
             }
         }
+    }
+
+    void RemoveCarsNotInResponse(CarsData newCarsData){
+        List<string> carsToRemove = new List<string>(cars.Keys);
+
+        foreach (CarData car in newCarsData.data){
+            if (carsToRemove.Contains(car.id)){
+                carsToRemove.Remove(car.id);
+            }
+        }
+
+        foreach (string carIdToRemove in carsToRemove){
+            Destroy(cars[carIdToRemove]);
+            cars.Remove(carIdToRemove);
+            prevPositions.Remove(carIdToRemove);
+            currPositions.Remove(carIdToRemove);
+        }
+
     }
 
     IEnumerator GetTLightsData(){ //Work in progress
@@ -312,7 +332,7 @@ public class AgentController : MonoBehaviour {
             foreach (TLightData tLight in trafficLightsData.data){
                 if(!tLightsStarted){
                     tLights[tLight.id] = Instantiate(roadPrefab, new Vector3(tLight.x, tLight.y = 0, tLight.z), Quaternion.identity);
-                    tLights[tLight.id] = Instantiate(tLightsPrefab, new Vector3(tLight.x, tLight.y, tLight.z), Quaternion.identity);
+                    tLights[tLight.id] = Instantiate(tLightsPrefab, new Vector3(tLight.x, tLight.y = 0.7f , tLight.z), Quaternion.identity);
                 }
                 else{
                     if(tLight.state){
@@ -369,6 +389,7 @@ public class AgentController : MonoBehaviour {
             foreach (AgentData building in buildingData.positions){
                 if(!buildingsStarted){
                     GameObject buildingPrefab = buildingsPrefabsVariant[UnityEngine.Random.Range(0, buildingsPrefabsVariant.Length)];
+                    buildings[building.id] = Instantiate(floorPrefab, new Vector3(building.x, building.y = 0 , building.z), Quaternion.identity);
                     buildings[building.id] = Instantiate(buildingPrefab, new Vector3(building.x, building.y, building.z), Quaternion.identity);
                 }
             }

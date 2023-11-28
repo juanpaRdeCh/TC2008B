@@ -23,7 +23,7 @@ def get_cars():
     global cityModel
     
     if request.method == 'GET':
-        carData = [{"id": str(Agent.unique_id), "x": Agent.pos[0], "y": 0.169, "z":Agent.pos[1], "destination": Agent.destination.pos}
+        carData = [{"id": str(Agent.unique_id), "x": Agent.pos[0], "y": 0.101, "z":Agent.pos[1], "destination": Agent.destination.pos}
                    for Agent in cityModel.cars.values()]
         return jsonify({"data": carData})
 
