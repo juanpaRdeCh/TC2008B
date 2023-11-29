@@ -100,6 +100,7 @@ public class HW_applyTransformsNew : MonoBehaviour
 
         mesh.vertices = newVertices;
         mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
 
 
         for (int i = 0; i < 4; i++)
@@ -119,6 +120,7 @@ public class HW_applyTransformsNew : MonoBehaviour
 
             wheelsMesh[i].vertices = wheelsNewVertices[i];
             wheelsMesh[i].RecalculateNormals();
+            wheelsMesh[i].RecalculateBounds();
         }
 
 

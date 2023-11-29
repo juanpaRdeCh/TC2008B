@@ -128,7 +128,7 @@ public class AgentController : MonoBehaviour {
 
     public GameObject[] carPrefabsVariant, destinationsPrefabsVariant, buildingsPrefabsVariant;
 
-    public string MapPath = "../AgentsModel&Servers/city_files/2022_prueba.txt";
+    public string MapPath = "../AgentsModel&Servers/city_files/2023_base.txt";
 
     public float timeToUpdate = 5.0f;
 
@@ -335,12 +335,30 @@ public class AgentController : MonoBehaviour {
                     tLights[tLight.id] = Instantiate(tLightsPrefab, new Vector3(tLight.x, tLight.y = 0.7f , tLight.z), Quaternion.identity);
                 }
                 else{
+                    
                     if(tLight.state){
                         tLights[tLight.id].GetComponent<Renderer>().material.color = Color.green;
                     }
                     else{
                         tLights[tLight.id].GetComponent<Renderer>().material.color = Color.red;
                     }
+                    
+                    // Light tlightComponent = tLights[tLight.id].GetComponentInChildren<Light>();
+
+                    // tlightComponent.shadows = LightShadows.Soft;
+
+                    // if(tLight.state){
+                    //     tlightComponent.color = Color.green;
+                    //     tlightComponent.range = 0.0001f;
+                    //     tlightComponent.spotAngle = 90.0f;
+                    //     tlightComponent.intensity = 0.01f;
+                    // }
+                    // else{
+                    //     tlightComponent.color = Color.red;
+                    //     tlightComponent.range = 0.001f;
+                    //     tlightComponent.spotAngle = 90.0f;
+                    //     tlightComponent.intensity = 0.05f;
+                    // }
                 }
                 
                 
