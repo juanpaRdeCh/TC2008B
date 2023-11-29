@@ -12,7 +12,7 @@ public class HW_applyTransformsNew : MonoBehaviour
 
     [SerializeField] Vector3 wheelScale;
 
-    [SerializeField] Vector3[] wheelPositions = new Vector3[4];
+    [SerializeField] Vector3[] wheelLocalPositions = new Vector3[4];
 
     private GameObject[] wheels;
 
@@ -36,6 +36,8 @@ public class HW_applyTransformsNew : MonoBehaviour
             Matrix4x4 scale = HW_Transforms.ScaleMat(wheelScale.x, wheelScale.y, wheelScale.z);
 
             wheels[i] = Instantiate(WheelOriginal);
+
+            wheels[i].name = gameObject.name + "Wheel" + i.ToString();
 
             wheelsMesh[i] = wheels[i].GetComponentInChildren<MeshFilter>().mesh;
 
@@ -89,16 +91,16 @@ public class HW_applyTransformsNew : MonoBehaviour
         float anglePos = angleRad * Mathf.Rad2Deg;
         float angle = 360 - anglePos;
 
-        Matrix4x4 move = HW_Transforms.TranslationMat(displacement.x * Time.time, displacement.y * Time.time, displacement.z * Time.time);
+        Matrix4x4 move = HW_Transforms.TranslationMat(displacement.x, displacement.y, displacement.z);
         Matrix4x4 rotate = HW_Transforms.RotateMat(angle , AXIS.Y); //cuadritos x segundo time=tiempo acumulado
-        Matrix4x4 composite = rotate;
+        Matrix4x4 composite = move * rotate;
 
-        Matrix4x4 rotateWheel = HW_Transforms.RotateMat(-379 * Time.time, AXIS.X);
+        Matrix4x4 rotateWheel = HW_Transforms.RotateMat(-359 * Time.time, AXIS.X);
 
         for (int i = 0; i < baseVertices.Length; i++)
         {
             Vector4 temp = new Vector4(baseVertices[i].x, baseVertices[i].y, baseVertices[i].z, 1);
-            newVertices[i] = composite * temp;
+            newVertices[i] = temp;
 
         }
 
@@ -111,8 +113,8 @@ public class HW_applyTransformsNew : MonoBehaviour
         {
             // Matrix4x4 scale = HW_Transforms.ScaleMat(wheelScale.x,wheelScale.y, wheelScale.z);
             
-            Matrix4x4 moveWheels = HW_Transforms.TranslationMat(wheelPositions[i].x, wheelPositions[i].y, wheelPositions[i].z);
-            Matrix4x4 wheelsTransform = composite * moveWheels * rotateWheel;
+            Matrix4x4 moveWheels = HW_Transforms.TranslationMat(wheelLocalPositions[i].x, wheelLocalPositions[i].y, wheelLocalPositions[i].z);
+            Matrix4x4 wheelsTransform = transform.localToWorldMatrix * move * moveWheels * rotateWheel;
 
             for (int j = 0; j < wheelsBaseVertices[i].Length; j++)
             {
