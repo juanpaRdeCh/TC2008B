@@ -10,6 +10,10 @@ public class HW_applyTransformsNew : MonoBehaviour
     // [SerializeField] AXIS rotationAxis;
     [SerializeField] GameObject WheelOriginal;
 
+    [SerializeField] Vector3 wheelScale;
+
+    [SerializeField] Vector3[] wheelPositions = new Vector3[4];
+
     private GameObject[] wheels;
 
 
@@ -24,7 +28,7 @@ public class HW_applyTransformsNew : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Vector3 wheelScale = new Vector3(0.39f, 0.39f, 0.39f);
+        // Vector3 wheelScale = new Vector3(0.39f, 0.39f, 0.39f);
 
         wheels = new GameObject[4];
         for (int i = 0; i < 4; i++)
@@ -74,12 +78,12 @@ public class HW_applyTransformsNew : MonoBehaviour
 
     void DoTransform()
     {
-        Vector3[] wheelPositions = new Vector3[4]{
-            new Vector3(0.85f,0.345f,1.535f),
-            new Vector3(-0.85f,0.345f,1.535f),
-            new Vector3(-0.85f,0.345f,-1.535f),
-            new Vector3(0.85f,0.345f,-1.535f)
-        };
+        // Vector3[] wheelPositions = new Vector3[4]{
+        //     new Vector3(0.85f,0.345f,1.535f),
+        //     new Vector3(-0.85f,0.345f,1.535f),
+        //     new Vector3(-0.85f,0.345f,-1.535f),
+        //     new Vector3(0.85f,0.345f,-1.535f)
+        // };
 
         float angleRad = Mathf.Atan2(displacement.z, displacement.x);
         float anglePos = angleRad * Mathf.Rad2Deg;
@@ -87,7 +91,7 @@ public class HW_applyTransformsNew : MonoBehaviour
 
         Matrix4x4 move = HW_Transforms.TranslationMat(displacement.x * Time.time, displacement.y * Time.time, displacement.z * Time.time);
         Matrix4x4 rotate = HW_Transforms.RotateMat(angle , AXIS.Y); //cuadritos x segundo time=tiempo acumulado
-        Matrix4x4 composite = move * rotate;
+        Matrix4x4 composite = rotate;
 
         Matrix4x4 rotateWheel = HW_Transforms.RotateMat(-379 * Time.time, AXIS.X);
 
