@@ -537,7 +537,7 @@ class CityModel(Model):
         self.schedule.step()
 
         # Create a new Car agent at each corner every 10 steps
-        if self.schedule.steps % 10 == 0:
+        if self.schedule.steps % 5 == 0:
             corners = [
                 (0, 0),
                 (0, self.height - 1),
