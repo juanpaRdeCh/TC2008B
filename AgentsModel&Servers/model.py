@@ -519,31 +519,44 @@ class CityModel(Model):
                             if isinstance(current_agent, Destination):
                                 G.add_edge(neighbor, current_node, weight=1)
 
-        # pos = {node: (node[0], node[1]) for node in G.nodes()}
-        # nx.draw(G, pos, with_labels=False, font_weight="bold")
-        # plt.show()
+        pos = {node: (node[0], node[1]) for node in G.nodes()}
+        nx.draw(G, pos, with_labels=False, font_weight="bold")
+        plt.show()
         self.graph = G
 
     def update_graph_weights(self):
+        # for node in self.graph.nodes():
+        #     if isinstance(self.grid.get_cell_list_contents([node])[0], Car):
+        #         # Si hay un Car en el nodo, actualizar los pesos de los bordes conectados a ese nodo a 3
+        #         for neighbor in self.graph.neighbors(node):
+        #             self.graph.edges[node, neighbor]["weight"] = 50
+        #     else:
+        #         # Si no hay un Car en el nodo, volver a establecer los pesos de los bordes a 1
+        #         for neighbor in self.graph.neighbors(node):
+        #             self.graph.edges[node, neighbor]["weight"] = 1
+
         for node in self.graph.nodes():
-            if isinstance(self.grid.get_cell_list_contents([node])[0], Car):
-                # Si hay un Car en el nodo, actualizar los pesos de los bordes conectados a ese nodo a 3
+            cell_contents = self.grid.get_cell_list_contents([node])
+            if any(isinstance(agent, Car) for agent in cell_contents):
+                # If there's a Car in the node, update the weights of connected edges to 50
                 for neighbor in self.graph.neighbors(node):
-                    self.graph.edges[node, neighbor]["weight"] = 50
+                    self.graph.edges[node, neighbor]["weight"] = 5
             else:
-                # Si no hay un Car en el nodo, volver a establecer los pesos de los bordes a 1
+                # If there's no Car in the node, reset the edge weights to 1
                 for neighbor in self.graph.neighbors(node):
                     self.graph.edges[node, neighbor]["weight"] = 1
+        for edge in self.graph.edges():
+            print(f"Edge {edge}: Weight {self.graph.edges[edge]['weight']}")
 
     def step(self):
         """Advance the model by one step."""
-        original_graph = self.graph.copy()
+        # original_graph = self.graph.copy()
         self.update_graph_weights()
 
         self.schedule.step()
 
         # Create a new Car agent at each corner every 10 steps
-        if self.schedule.steps % 10 == 0:
+        if self.schedule.steps % 5 == 0:
             corners = [
                 (0, 0),
                 (0, self.height - 1),
@@ -556,4 +569,4 @@ class CityModel(Model):
                 self.cars[new_agent.unique_id] = new_agent
                 self.grid.place_agent(new_agent, corner)
                 self.schedule.add(new_agent)
-        self.graph = original_graph
+        # self.graph = original_graph
