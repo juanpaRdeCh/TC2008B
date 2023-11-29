@@ -1,6 +1,7 @@
 from mesa import Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
+from mesa.datacollection import DataCollector
 from agent import *
 import json
 
@@ -16,7 +17,6 @@ class CityModel(Model):
     def __init__(self, map_path):
         # Load the map dictionary. The dictionary maps the characters in the map file to the corresponding agent.
         dataDictionary = json.load(open("city_files/mapDictionary.json"))
-
         self.traffic_lights = []
 
         self.cars = {}
@@ -524,6 +524,21 @@ class CityModel(Model):
         plt.show()
         self.graph = G
 
+    # def car_count(self):
+    #     """Counts the number of cars in the simulation."""
+    #     count = 0
+    #     for agent in self.schedule.agents:
+    #         if isinstance(agent, Car):
+    #             count += 1
+    #     return count
+    def car_count(self):
+        """Counts the number of cars in the simulation."""
+        count = 0
+        for agent in self.cars.values():
+            if isinstance(agent, Car):
+                count += 1
+        return count
+
     def update_graph_weights(self):
         # for node in self.graph.nodes():
         #     if isinstance(self.grid.get_cell_list_contents([node])[0], Car):
@@ -548,15 +563,12 @@ class CityModel(Model):
         for edge in self.graph.edges():
             print(f"Edge {edge}: Weight {self.graph.edges[edge]['weight']}")
 
-    def step(self):
-        """Advance the model by one step."""
-        # original_graph = self.graph.copy()
-        self.update_graph_weights()
+    dataCollector = DataCollector(
+        model_reporters={"Car Count": "car_count"}, agent_reporters={}
+    )
 
-        self.schedule.step()
-
-        # Create a new Car agent at each corner every 10 steps
-        if self.schedule.steps % 5 == 0:
+    def car_spawner(self):
+        if self.schedule.steps % 3 == 0:
             corners = [
                 (0, 0),
                 (0, self.height - 1),
@@ -564,9 +576,26 @@ class CityModel(Model):
                 (self.width - 1, self.height - 1),
             ]
             for corner in corners:
-                new_agent = Car(self.num_agents + 1, self, self.graph)
-                self.num_agents += 1
-                self.cars[new_agent.unique_id] = new_agent
-                self.grid.place_agent(new_agent, corner)
-                self.schedule.add(new_agent)
+                if any(isinstance(agent, Car) for agent in corners):
+                    bussy = True
+                else:
+                    bussy = False
+                if bussy == False:
+                    new_agent = Car(self.num_agents + 1, self, self.graph)
+                    self.num_agents += 1
+                    self.cars[new_agent.unique_id] = new_agent
+                    self.grid.place_agent(new_agent, corner)
+                    self.schedule.add(new_agent)
+
+    def step(self):
+        """Advance the model by one step."""
+        # original_graph = self.graph.copy()
+        self.update_graph_weights()
+        print(self.car_count())
+        self.schedule.step()
+        self.dataCollector.collect(self)
+        self.car_spawner()
+
+        # Create a new Car agent at each corner every 10 steps
+
         # self.graph = original_graph
