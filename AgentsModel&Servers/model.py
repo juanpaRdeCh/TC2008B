@@ -527,7 +527,6 @@ class CityModel(Model):
         # plt.show()
         self.graph = G
 
-
     def car_count(self):
         """Counts the number of cars in the simulation."""
         count = 0
@@ -537,7 +536,6 @@ class CityModel(Model):
         return count
 
     def update_graph_weights(self):
-
         for node in self.graph.nodes():
             cell_contents = self.grid.get_cell_list_contents([node])
             if any(isinstance(agent, Car) for agent in cell_contents):
@@ -556,7 +554,7 @@ class CityModel(Model):
     )
 
     def car_spawner(self):
-        if self.schedule.steps % 3 == 0:
+        if self.schedule.steps % 1 == 0:
             corners = [
                 (0, 0),
                 (0, self.height - 1),
@@ -564,7 +562,8 @@ class CityModel(Model):
                 (self.width - 1, self.height - 1),
             ]
             for corner in corners:
-                if any(isinstance(agent, Car) for agent in corners):
+                cell_contents = self.grid.get_cell_list_contents([corner])
+                if any(isinstance(agent, Car) for agent in cell_contents):
                     bussy = True
                 else:
                     bussy = False
@@ -577,39 +576,35 @@ class CityModel(Model):
 
     def step(self):
         """Advance the model by one step."""
-        
+
         if self.step_counter % 10 == 0:
             self.send_post_request()
-            
+
         self.step_counter += 1
-        
+
         self.update_graph_weights()
         print(self.agents_arrived)
         self.schedule.step()
         self.dataCollector.collect(self)
         self.car_spawner()
-        
+
     def send_post_request(self):
         data = {
             "year": 2023,
-            "classroom":302,
-            "name":"Equipo 8 - David y Jp",
-            "num_cars": self.agents_arrived
+            "classroom": 302,
+            "name": "Equipo 8 - David y Jp",
+            "num_cars": self.agents_arrived,
         }
-        
+
         url = "http://52.1.3.19:8585/api/"
         endpoint = "validate_attempt"
-        
-        headers = {
-            'Content-Type': 'application/json'
-        }
-        
-        response = requests.post(url+endpoint, data=json.dumps(data), headers=headers)
-        
+
+        headers = {"Content-Type": "application/json"}
+
+        response = requests.post(url + endpoint, data=json.dumps(data), headers=headers)
+
         if response.status_code == 200:
             print("Request successful. Status code:", response.status_code)
             print("Response:", response.json())
         else:
             print("Request failed. Status code:", response.status_code)
-
-            
