@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import random
 
 
+
 class Car(Agent):
     """
     Agent that moves randomly.
@@ -61,6 +62,7 @@ class Car(Agent):
                         self.model.schedule.remove(self)
                         self.model.grid.remove_agent(self)
                         self.model.cars.pop(self.unique_id)
+                        self.model.agents_arrived += 1
         else:
             print("Traffic light is red. Waiting...")
             self.moving = False
@@ -114,21 +116,6 @@ class Car(Agent):
                 else:
                     return True
         return True
-
-        # x, y = self.pos
-        # current_node = (x, y)
-        # neighbors = self.model.grid.get_neighborhood(
-        #     current_node, moore=False, include_center=False
-        # )  # Obtener vecinos
-        # for neighbor in neighbors:
-        #     neighbor_agent = self.model.grid.get_cell_list_contents([neighbor])
-        #     for agent in neighbor_agent:
-        #         if isinstance(agent, Traffic_Light):
-        #             if agent.state == False:
-        #                 return False
-        #             else:
-        #                 return True
-        # return True
 
     def get_next_position(self):
         """

@@ -7,8 +7,6 @@ import json
 import requests
 
 
-
-
 class CityModel(Model):
     """
     Creates a model based on a city map.
@@ -27,6 +25,7 @@ class CityModel(Model):
         self.traffic_lights1 = {}
         self.destination = {}
         self.buidings = {}
+        self.agents_arrived = 0
         self.step_counter = 0
 
         # Load the map file. The map file is a text file where each character represents an agent.
@@ -585,7 +584,7 @@ class CityModel(Model):
         self.step_counter += 1
         
         self.update_graph_weights()
-        print(self.car_count())
+        print(self.agents_arrived)
         self.schedule.step()
         self.dataCollector.collect(self)
         self.car_spawner()
@@ -595,7 +594,7 @@ class CityModel(Model):
             "year": 2023,
             "classroom":302,
             "name":"Equipo 8 - David y Jp",
-            "num_cars": self.car_count()
+            "num_cars": self.agents_arrived
         }
         
         url = "http://52.1.3.19:8585/api/"
