@@ -3,7 +3,7 @@ from queue import PriorityQueue
 import networkx as nx
 import matplotlib.pyplot as plt
 import random
-
+import numpy as np
 
 
 class Car(Agent):
@@ -25,6 +25,9 @@ class Car(Agent):
         self.destination = self.choose_random_destination()
         self.moving = moving
         self.graph = graph
+        self.path_calculated = False
+        self.path = None
+
         print("Destination:", self.destination.pos)
 
     def choose_random_destination(self):
@@ -64,7 +67,43 @@ class Car(Agent):
                         self.model.cars.pop(self.unique_id)
                         self.model.agents_arrived += 1
         else:
-            print("Traffic light is red. Waiting...")
+            self.moving = False
+
+    # Intento de move to destination con paciencia
+    def move_to_destination2(self):
+        if self.destination is not None:
+            if self.trafficlightstate() and self.avoid_car_collision2():
+                current_position = self.pos
+                destination_position = self.destination.pos
+
+                if not self.path_calculated:
+                    try:
+                        self.path = nx.astar_path(
+                            self.graph, current_position, destination_position
+                        )
+                        self.path_calculated = True
+                    except nx.NetworkXNoPath:
+                        print("No path found")
+                        self.path_calculated = False
+                        return
+                if self.avoid_car_collision2() and self.recalculate_path():
+                    try:
+                        self.path = nx.astar_path(
+                            self.graph, current_position, destination_position
+                        )
+                    except nx.NetworkXNoPath:
+                        print("No path found")
+                        return
+                if self.path:
+                    new_position = self.path[1]
+                    self.model.grid.move_agent(self, new_position)
+
+                    if new_position == destination_position:
+                        self.model.schedule.remove(self)
+                        self.model.grid.remove_agent(self)
+                        self.model.cars.pop(self.unique_id)
+                        self.model.agents_arrived += 1
+        else:
             self.moving = False
 
     def avoid_car_collision(self):
@@ -89,6 +128,53 @@ class Car(Agent):
             if isinstance(agent, Car):
                 return False
         return True
+
+    def avoid_car_collision2(self):
+        """
+        Determines if there is a car in the current direction of movement. If there is, the car agent stops until the car in front moves.
+        """
+        x, y = self.pos
+        current_node = (x, y)
+
+        # Obtener la próxima posición del agente
+        next_position = self.get_next_position()
+
+        # Calcular la dirección de movimiento
+        direction_of_movement = (next_position[0] - x, next_position[1] - y)
+
+        # Obtener el vecino en la dirección de movimiento
+        neighbor = (x + direction_of_movement[0], y + direction_of_movement[1])
+
+        # Verificar si hay un coche en la dirección de movimiento
+        neighbor_agent = self.model.grid.get_cell_list_contents([neighbor])
+        for agent in neighbor_agent:
+            if isinstance(agent, Car):
+                self.recalculate_path()
+                return False
+        return True
+
+    def recalculate_path(self):
+        recaltulate = random.randint(1, 10)
+        if recaltulate == 1:
+            return False
+        elif recaltulate == 2:
+            return True
+        elif recaltulate == 3:
+            return True
+        elif recaltulate == 4:
+            return False
+        elif recaltulate == 5:
+            return False
+        elif recaltulate == 6:
+            return False
+        elif recaltulate == 7:
+            return False
+        elif recaltulate == 8:
+            return False
+        elif recaltulate == 9:
+            return False
+        elif recaltulate == 10:
+            return False
 
     def trafficlightstate(self):
         """
