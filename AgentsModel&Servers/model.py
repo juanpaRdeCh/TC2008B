@@ -4,6 +4,9 @@ from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 from agent import *
 import json
+import requests
+
+
 
 
 class CityModel(Model):
@@ -24,6 +27,7 @@ class CityModel(Model):
         self.traffic_lights1 = {}
         self.destination = {}
         self.buidings = {}
+        self.step_counter = 0
 
         # Load the map file. The map file is a text file where each character represents an agent.
         with open("city_files/2023_base.txt") as baseFile:
@@ -524,13 +528,7 @@ class CityModel(Model):
         # plt.show()
         self.graph = G
 
-    # def car_count(self):
-    #     """Counts the number of cars in the simulation."""
-    #     count = 0
-    #     for agent in self.schedule.agents:
-    #         if isinstance(agent, Car):
-    #             count += 1
-    #     return count
+
     def car_count(self):
         """Counts the number of cars in the simulation."""
         count = 0
@@ -540,15 +538,6 @@ class CityModel(Model):
         return count
 
     def update_graph_weights(self):
-        # for node in self.graph.nodes():
-        #     if isinstance(self.grid.get_cell_list_contents([node])[0], Car):
-        #         # Si hay un Car en el nodo, actualizar los pesos de los bordes conectados a ese nodo a 3
-        #         for neighbor in self.graph.neighbors(node):
-        #             self.graph.edges[node, neighbor]["weight"] = 50
-        #     else:
-        #         # Si no hay un Car en el nodo, volver a establecer los pesos de los bordes a 1
-        #         for neighbor in self.graph.neighbors(node):
-        #             self.graph.edges[node, neighbor]["weight"] = 1
 
         for node in self.graph.nodes():
             cell_contents = self.grid.get_cell_list_contents([node])
@@ -560,8 +549,8 @@ class CityModel(Model):
                 # If there's no Car in the node, reset the edge weights to 1
                 for neighbor in self.graph.neighbors(node):
                     self.graph.edges[node, neighbor]["weight"] = 1
-        for edge in self.graph.edges():
-            print(f"Edge {edge}: Weight {self.graph.edges[edge]['weight']}")
+        # for edge in self.graph.edges():
+        #     print(f"Edge {edge}: Weight {self.graph.edges[edge]['weight']}")
 
     dataCollector = DataCollector(
         model_reporters={"Car Count": "car_count"}, agent_reporters={}
@@ -589,13 +578,39 @@ class CityModel(Model):
 
     def step(self):
         """Advance the model by one step."""
-        # original_graph = self.graph.copy()
+        
+        if self.step_counter % 10 == 0:
+            self.send_post_request()
+            
+        self.step_counter += 1
+        
         self.update_graph_weights()
         print(self.car_count())
         self.schedule.step()
         self.dataCollector.collect(self)
         self.car_spawner()
+        
+    def send_post_request(self):
+        data = {
+            "year": 2023,
+            "classroom":302,
+            "name":"Equipo 8 - David y Jp",
+            "num_cars": self.car_count()
+        }
+        
+        url = "http://52.1.3.19:8585/api/"
+        endpoint = "validate_attempt"
+        
+        headers = {
+            'Content-Type': 'application/json'
+        }
+        
+        response = requests.post(url+endpoint, data=json.dumps(data), headers=headers)
+        
+        if response.status_code == 200:
+            print("Request successful. Status code:", response.status_code)
+            print("Response:", response.json())
+        else:
+            print("Request failed. Status code:", response.status_code)
 
-        # Create a new Car agent at each corner every 10 steps
-
-        # self.graph = original_graph
+            

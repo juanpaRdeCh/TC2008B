@@ -73,6 +73,8 @@ def updateModel():
         current_step += 1
         return jsonify({"message": "Model Updated"})
 
+
+
 if __name__ == "__main__":
     app.run(host="localhost", port=8585, debug=True)
      
