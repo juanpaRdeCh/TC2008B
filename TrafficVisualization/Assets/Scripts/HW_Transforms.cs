@@ -44,18 +44,18 @@ public class HW_Transforms : MonoBehaviour
         Matrix4x4 matrix = Matrix4x4.identity;
         if (axis == AXIS.X) { //COMPLETAR
             matrix[1,1] = cosTheta; // HOMOGENEA
-            matrix[1,2] = sinTheta;
-            matrix[2,1] = -sinTheta;
+            matrix[1,2] = -sinTheta;
+            matrix[2,1] = sinTheta;
             matrix[2,2] = cosTheta;
         } else if (axis == AXIS.Y) { //COMPLETAR
             matrix[0,0] = cosTheta; // HOMOGENEA
-            matrix[0,2] = -sinTheta;
-            matrix[2,0] = sinTheta;
+            matrix[0,2] = sinTheta;
+            matrix[2,0] = -sinTheta;
             matrix[2,2] = cosTheta;
         } else if (axis == AXIS.Z) {
             matrix[0,0] = cosTheta; // HOMOGENEA
-            matrix[0,1] = sinTheta;
-            matrix[1,0] = -sinTheta;
+            matrix[0,1] = -sinTheta;
+            matrix[1,0] = sinTheta;
             matrix[1,1] = cosTheta;
         }
         return matrix;

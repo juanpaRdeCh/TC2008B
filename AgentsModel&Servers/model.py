@@ -519,9 +519,9 @@ class CityModel(Model):
                             if isinstance(current_agent, Destination):
                                 G.add_edge(neighbor, current_node, weight=1)
 
-        pos = {node: (node[0], node[1]) for node in G.nodes()}
-        nx.draw(G, pos, with_labels=False, font_weight="bold")
-        plt.show()
+        # pos = {node: (node[0], node[1]) for node in G.nodes()}
+        # nx.draw(G, pos, with_labels=False, font_weight="bold")
+        # plt.show()
         self.graph = G
 
     # def car_count(self):

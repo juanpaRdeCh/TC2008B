@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class HW_applyTransformsNew : MonoBehaviour
 {
-    [SerializeField] Vector3 displacement;
+    // [SerializeField] Vector3 displacement;
 
     // [SerializeField] float angle;
     // [SerializeField] AXIS rotationAxis;
@@ -87,15 +87,14 @@ public class HW_applyTransformsNew : MonoBehaviour
         //     new Vector3(0.85f,0.345f,-1.535f)
         // };
 
-        float angleRad = Mathf.Atan2(displacement.z, displacement.x);
-        float anglePos = angleRad * Mathf.Rad2Deg;
-        float angle = 360 - anglePos;
+        // float angleRad = Mathf.Atan2(displacement.z, displacement.x);
+        // float angle = angleRad * Mathf.Rad2Deg;
 
-        Matrix4x4 move = HW_Transforms.TranslationMat(displacement.x, displacement.y, displacement.z);
-        Matrix4x4 rotate = HW_Transforms.RotateMat(angle , AXIS.Y); //cuadritos x segundo time=tiempo acumulado
-        Matrix4x4 composite = move * rotate;
+        // Matrix4x4 move = HW_Transforms.TranslationMat(displacement.x, displacement.y, displacement.z);
+        // // Matrix4x4 rotate = HW_Transforms.RotateMat(angle , AXIS.Y); //cuadritos x segundo time=tiempo acumulado
+        // Matrix4x4 composite = move * rotate;
 
-        Matrix4x4 rotateWheel = HW_Transforms.RotateMat(-359 * Time.time, AXIS.X);
+        Matrix4x4 rotateWheel = HW_Transforms.RotateMat(360 * Time.time, AXIS.X);
 
         for (int i = 0; i < baseVertices.Length; i++)
         {
@@ -113,8 +112,15 @@ public class HW_applyTransformsNew : MonoBehaviour
         {
             // Matrix4x4 scale = HW_Transforms.ScaleMat(wheelScale.x,wheelScale.y, wheelScale.z);
             
+            
             Matrix4x4 moveWheels = HW_Transforms.TranslationMat(wheelLocalPositions[i].x, wheelLocalPositions[i].y, wheelLocalPositions[i].z);
-            Matrix4x4 wheelsTransform = transform.localToWorldMatrix * move * moveWheels * rotateWheel;
+            Matrix4x4 wheelsTransform = transform.localToWorldMatrix * moveWheels * rotateWheel;
+
+            if (i ==1 || i==3)
+            {
+                Matrix4x4 additionalRotation = HW_Transforms.RotateMat(180, AXIS.Y);
+                wheelsTransform *= additionalRotation;
+            }
 
             for (int j = 0; j < wheelsBaseVertices[i].Length; j++)
             {
