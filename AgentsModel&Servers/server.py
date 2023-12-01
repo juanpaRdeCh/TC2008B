@@ -1,3 +1,6 @@
+#Script para correr el modelo mediante una visualización de mesa 
+
+
 from agent import *
 from model import CityModel
 from mesa.visualization import CanvasGrid
