@@ -1,3 +1,5 @@
+#Scrip que contiene el comportamiento de cada agente para el modelo de mesa
+
 from mesa import Agent
 from queue import PriorityQueue
 import networkx as nx
