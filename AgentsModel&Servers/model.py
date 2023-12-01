@@ -1,3 +1,5 @@
+#Script que genera el ambiente en el cual los agentes deben cumplir su objetivo
+
 from mesa import Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
