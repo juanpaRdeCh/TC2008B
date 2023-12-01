@@ -1,3 +1,5 @@
+#Script que genera un backend para que la simulación pueda ser visualizada en Unity
+
 from agent import Car, Traffic_Light, Destination, Obstacle, Road
 from model import CityModel
 from flask import Flask, request, jsonify
