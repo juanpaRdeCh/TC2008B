@@ -1,3 +1,7 @@
+/* 
+Script que utiliza matrices de transformación para el movimiento de las llantas y el coche 
+*/
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
